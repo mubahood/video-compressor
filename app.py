@@ -33,7 +33,11 @@ from src.photo_algorithms import (
 # =============================================================================
 
 # Determine base directory (works for both local and cPanel deployment)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+try:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    # __file__ not defined in some contexts (e.g., exec, some WSGI servers)
+    BASE_DIR = os.getcwd()
 
 # Environment detection
 IS_PRODUCTION = os.environ.get('FLASK_ENV', 'development') == 'production'

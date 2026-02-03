@@ -21,11 +21,13 @@ sys.path.insert(0, CURRENT_DIR)
 # Try to import the app with error handling
 try:
     from app import app as application
-except Exception as e:
+except Exception as import_error:
     # If app fails to load, create a simple error page
+    error_message = str(import_error)
+    
     def application(environ, start_response):
         status = '500 Internal Server Error'
-        error_msg = f"App failed to load: {str(e)}"
+        error_msg = f"App failed to load: {error_message}"
         output = f"""
         <html>
         <head><title>Error</title></head>
