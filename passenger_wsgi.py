@@ -1,41 +1,42 @@
 """
 Passenger WSGI Entry Point for cPanel Deployment
 =================================================
-This file is required for deploying Flask apps on cPanel with Passenger.
 """
 
 import sys
 import os
 
-# IMPORTANT: Set the correct paths for your cPanel environment
+# PATHS - Update these for your cPanel environment
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+VENV_DIR = '/home/whatsinu/virtualenv/africa.ugnews24.info/3.8'
 
-# Virtual environment path - UPDATE THIS to match your cPanel setup
-# Check your Python App settings in cPanel for the correct path
-VENV_DIR = os.path.join(CURRENT_DIR, 'venv')
+# Add virtual environment site-packages
+venv_packages = os.path.join(VENV_DIR, 'lib', 'python3.8', 'site-packages')
+if os.path.exists(venv_packages):
+    sys.path.insert(0, venv_packages)
 
-# Alternative common paths on cPanel:
-# VENV_DIR = '/home/whatsinu/virtualenv/africa.ugnews24.info/3.8'
-# VENV_DIR = '/home/whatsinu/africa.ugnews24.info/venv'
-
-# Activate virtual environment
-if os.path.exists(VENV_DIR):
-    venv_site_packages = os.path.join(VENV_DIR, 'lib', 'python3.8', 'site-packages')
-    if os.path.exists(venv_site_packages):
-        sys.path.insert(0, venv_site_packages)
-    # Also try python3.9, 3.10, 3.11
-    for pyver in ['3.9', '3.10', '3.11', '3.12']:
-        alt_path = os.path.join(VENV_DIR, 'lib', f'python{pyver}', 'site-packages')
-        if os.path.exists(alt_path):
-            sys.path.insert(0, alt_path)
-            break
-
-# Add application directory to Python path
+# Add application directory
 sys.path.insert(0, CURRENT_DIR)
 
-# Import the Flask application
-from app import app as application
-
-# Passenger expects the WSGI app to be named 'application'
-if __name__ == '__main__':
-    application.run()
+# Try to import the app with error handling
+try:
+    from app import app as application
+except Exception as e:
+    # If app fails to load, create a simple error page
+    def application(environ, start_response):
+        status = '500 Internal Server Error'
+        error_msg = f"App failed to load: {str(e)}"
+        output = f"""
+        <html>
+        <head><title>Error</title></head>
+        <body>
+        <h1>Application Error</h1>
+        <p>{error_msg}</p>
+        <p>Python: {sys.version}</p>
+        <p>Path: {sys.path}</p>
+        </body>
+        </html>
+        """.encode('utf-8')
+        response_headers = [('Content-type', 'text/html'), ('Content-Length', str(len(output)))]
+        start_response(status, response_headers)
+        return [output]
