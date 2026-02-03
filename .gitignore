@@ -48,8 +48,11 @@ env/
 Thumbs.db
 
 # Session data
-*.json
-!package.json
+session_data.json
+
+# Environment files (keep .env.example)
+.env
+!.env.example
 
 # Logs
 *.log

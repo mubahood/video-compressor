@@ -1,0 +1,7 @@
+PassengerEnabled On
+PassengerAppRoot /home/YOUR_USERNAME/YOUR_APP_DIRECTORY
+PassengerPython /home/YOUR_USERNAME/YOUR_APP_DIRECTORY/venv/bin/python
+
+# Optional: Set environment variables
+SetEnv FLASK_ENV production
+SetEnv SECRET_KEY your-secure-secret-key-here

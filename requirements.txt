@@ -9,3 +9,6 @@ Pillow>=10.0.0
 # ML/AI packages (optional - enables AI-enhanced compression)
 opencv-python-headless>=4.8.0
 numpy>=1.24.0
+
+# Production WSGI server (optional - for non-Passenger deployments)
+# gunicorn>=21.0.0

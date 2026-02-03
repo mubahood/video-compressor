@@ -4,6 +4,8 @@ VideoPress - WhatsApp Video & Photo Compressor
 Professional Flask application with persistent session management,
 auto-cleanup, and improved cookie handling.
 Supports both video and photo compression optimized for WhatsApp.
+
+Deployment: Compatible with cPanel Passenger WSGI
 """
 
 import os
@@ -30,24 +32,36 @@ from src.photo_algorithms import (
 # APP CONFIGURATION
 # =============================================================================
 
+# Determine base directory (works for both local and cPanel deployment)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Environment detection
+IS_PRODUCTION = os.environ.get('FLASK_ENV', 'development') == 'production'
+
 app = Flask(__name__, template_folder='templates', static_folder='static')
-app.secret_key = os.environ.get('SECRET_KEY', 'videopress-secure-key-2024')
+
+# Security: Use environment variable in production, fallback for development
+app.secret_key = os.environ.get('SECRET_KEY', 'videopress-dev-key-change-in-production')
 
 # Session configuration
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION  # HTTPS only in production
 
-# File configuration
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
-OUTPUT_FOLDER = os.path.join(os.path.dirname(__file__), 'outputs')
-SESSION_DATA_FILE = os.path.join(os.path.dirname(__file__), 'session_data.json')
+# File configuration - use absolute paths for cPanel compatibility
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+OUTPUT_FOLDER = os.path.join(BASE_DIR, 'outputs')
+SESSION_DATA_FILE = os.path.join(BASE_DIR, 'session_data.json')
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', '3gp'}
 ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff'}
 ALLOWED_EXTENSIONS = ALLOWED_VIDEO_EXTENSIONS | ALLOWED_IMAGE_EXTENSIONS
-MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
-FILE_EXPIRY_HOURS = 24  # Auto-delete after 24 hours
+MAX_FILE_SIZE = int(os.environ.get('MAX_CONTENT_LENGTH', 500 * 1024 * 1024))  # 500MB default
+FILE_EXPIRY_HOURS = int(os.environ.get('FILE_EXPIRY_HOURS', 24))  # Auto-delete after 24 hours
+
+# Set max content length for Flask
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
@@ -857,16 +871,16 @@ def server_error(e):
 
 
 # =============================================================================
-# MAIN
+# MAIN - Only runs when executed directly (not via WSGI)
 # =============================================================================
 
+# Run cleanup on import (for both local and WSGI)
+cleanup_expired_files()
+
 if __name__ == '__main__':
-    # Cleanup expired files on startup
-    cleanup_expired_files()
-    
-    # Run the app
+    # Local development server
     app.run(
-        host='0.0.0.0',
-        port=5001,
-        debug=True
+        host=os.environ.get('HOST', '0.0.0.0'),
+        port=int(os.environ.get('PORT', 5001)),
+        debug=not IS_PRODUCTION
     )
