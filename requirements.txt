@@ -1,0 +1,11 @@
+flask>=2.3.0
+ffmpeg-python>=0.2.0
+python-dotenv>=1.0.0
+werkzeug>=2.3.0
+
+# Image processing
+Pillow>=10.0.0
+
+# ML/AI packages (optional - enables AI-enhanced compression)
+opencv-python-headless>=4.8.0
+numpy>=1.24.0

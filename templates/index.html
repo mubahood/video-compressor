@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaPress - WhatsApp Compressor</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #22c55e;
+            --primary-hover: #16a34a;
+            --primary-muted: rgba(34, 197, 94, 0.1);
+            --bg: #09090b;
+            --bg-card: #18181b;
+            --bg-elevated: #27272a;
+            --border: #27272a;
+            --border-hover: #3f3f46;
+            --text: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --success: #22c55e;
+            --warning: #eab308;
+            --error: #ef4444;
+            --purple: #a855f7;
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .app { max-width: 720px; margin: 0 auto; padding: 16px; }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-icon i { color: var(--bg); }
+        .logo-icon svg { width: 18px; height: 18px; stroke: var(--bg); }
+        .session-badge {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--bg-elevated);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            background: var(--bg-elevated);
+            border-radius: var(--radius);
+            padding: 3px;
+            margin-bottom: 12px;
+        }
+        .mode-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { color: var(--text); }
+        .mode-btn.active {
+            background: var(--primary);
+            color: #000;
+        }
+        .mode-btn.active svg { stroke: #000; }
+        .mode-btn svg { width: 16px; height: 16px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            margin-bottom: 12px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .card-header i { font-size: 16px; color: var(--primary); }
+        .card-header svg { width: 16px; height: 16px; stroke: var(--primary); }
+        .card-body { padding: 16px; }
+
+        /* Upload */
+        .upload-zone {
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 32px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: var(--primary-muted);
+        }
+        .upload-zone i { font-size: 32px; color: var(--text-muted); margin-bottom: 8px; }
+        .upload-zone svg { width: 32px; height: 32px; stroke: var(--text-muted); margin-bottom: 8px; }
+        .upload-zone h3 { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .upload-zone p { font-size: 12px; color: var(--text-muted); }
+        .upload-zone.uploaded { border-style: solid; border-color: var(--primary); background: var(--primary-muted); }
+        .upload-zone.uploaded i { color: var(--primary); }
+        #fileInput { display: none; }
+
+        /* Video Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .info-item {
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 10px;
+            text-align: center;
+        }
+        .info-item .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .info-item .value { font-size: 13px; font-weight: 600; color: var(--primary); margin-top: 2px; }
+
+        /* Algorithm Grid */
+        .algo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .algo-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .algo-card:hover { border-color: var(--border-hover); }
+        .algo-card.selected { border-color: var(--primary); background: var(--primary-muted); }
+        .algo-card input { display: none; }
+        .algo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .algo-icon {
+            width: 28px; height: 28px;
+            background: var(--bg-elevated);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .algo-icon i { font-size: 14px; color: var(--primary); }
+        .algo-icon svg { width: 14px; height: 14px; stroke: var(--primary); }
+        .algo-name { font-size: 12px; font-weight: 600; }
+        .algo-tag {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--primary);
+            color: var(--bg);
+            font-weight: 600;
+            margin-left: auto;
+        }
+        .algo-tag.balanced { background: var(--text-secondary); }
+        .algo-tag.fast { background: var(--warning); }
+        .algo-desc { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4; }
+        .algo-stats { display: flex; gap: 12px; }
+        .stat-row { font-size: 10px; color: var(--text-muted); }
+        .stat-bar { display: flex; gap: 2px; margin-top: 3px; }
+        .stat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bg-elevated); }
+        .stat-dot.filled { background: var(--primary); }
+
+        /* Split Options */
+        .split-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .split-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            color: var(--text);
+        }
+        .split-btn:hover { border-color: var(--border-hover); }
+        .split-btn.selected { border-color: var(--primary); background: var(--primary-muted); }
+        .split-btn .title { font-size: 12px; font-weight: 600; display: block; }
+        .split-btn .hint { font-size: 10px; color: var(--text-muted); }
+
+        /* Warning */
+        .warning-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--warning);
+        }
+        .warning-bar.show { display: flex; }
+        .warning-bar i { font-size: 14px; }
+        .warning-bar svg { width: 14px; height: 14px; stroke: var(--warning); }
+
+        /* Primary Button */
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary i { font-size: 16px; }
+        .btn-primary svg { width: 16px; height: 16px; stroke: var(--bg); }
+
+        /* Progress */
+        .progress-card { display: none; }
+        .progress-card.show { display: block; }
+        .progress-bar-wrap {
+            height: 4px;
+            background: var(--bg);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .progress-text { text-align: center; font-size: 12px; color: var(--text-muted); }
+
+        /* Results */
+        .results-card { display: none; }
+        .results-card.show { display: block; }
+        .result-banner {
+            background: var(--primary-muted);
+            border: 1px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .result-banner h3 { font-size: 14px; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .result-banner p { font-size: 12px; color: var(--text-secondary); }
+        .result-stats { display: flex; justify-content: center; gap: 32px; margin-top: 12px; }
+        .result-stat { text-align: center; }
+        .result-stat .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+        .result-stat .value { font-size: 18px; font-weight: 700; color: var(--primary); }
+
+        /* Download List */
+        .download-header { font-size: 12px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .download-header i { color: var(--primary); }
+        .download-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: var(--radius);
+            margin-bottom: 6px;
+        }
+        .download-info { display: flex; align-items: center; gap: 10px; }
+        .download-icon { width: 32px; height: 32px; background: var(--bg-elevated); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .download-icon i { font-size: 16px; color: var(--text-muted); }
+        .download-icon svg { width: 16px; height: 16px; stroke: var(--text-muted); }
+        .download-details h4 { font-size: 12px; font-weight: 500; }
+        .download-details p { font-size: 11px; color: var(--text-muted); }
+        .btn-download {
+            padding: 6px 12px;
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+        }
+        .btn-download:hover { background: var(--primary-hover); }
+
+        /* Secondary Button */
+        .btn-secondary {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
+        }
+        .footer p { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+        .footer-actions { display: flex; justify-content: center; gap: 8px; }
+        .btn-ghost {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-ghost:hover { border-color: var(--error); color: var(--error); }
+        .btn-ghost.primary:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* History Section */
+        .history-card { display: none; }
+        .history-card.show { display: block; }
+        .history-item {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: var(--radius);
+            margin-bottom: 6px;
+        }
+        .history-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .history-meta { font-size: 10px; color: var(--text-muted); }
+        .history-actions { display: flex; gap: 6px; }
+        .history-parts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        .history-parts-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            width: 100%;
+            margin-bottom: 2px;
+        }
+        .part-btn {
+            padding: 4px 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .part-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+        }
+        .part-btn i { width: 12px; height: 12px; }
+        .btn-icon {
+            width: 28px; height: 28px;
+            background: var(--bg-elevated);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon:hover { color: var(--primary); }
+        .btn-icon.danger:hover { color: var(--error); }
+
+        /* Spinner */
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: var(--bg);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .algo-grid, .split-grid { grid-template-columns: 1fr; }
+            .info-grid { grid-template-columns: repeat(2, 1fr); }
+            .result-stats { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+                <span>MediaPress</span>
+            </div>
+            <span class="session-badge" id="sessionBadge">Session: ...</span>
+        </header>
+
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" data-mode="video" onclick="setMode('video')">
+                <i data-lucide="video"></i>
+                <span>Video</span>
+            </button>
+            <button class="mode-btn" data-mode="photo" onclick="setMode('photo')">
+                <i data-lucide="image"></i>
+                <span>Photo</span>
+            </button>
+        </div>
+
+        <!-- VIDEO MODE -->
+        <div id="videoMode">
+            <!-- Upload Card -->
+            <div class="card" id="uploadCard">
+                <div class="card-header">
+                    <i data-lucide="upload"></i>
+                    <span>Upload Video</span>
+                </div>
+                <div class="card-body">
+                    <div class="upload-zone" id="uploadZone">
+                        <i data-lucide="film"></i>
+                        <h3>Drop video here or click to browse</h3>
+                        <p>MP4, MOV, AVI, MKV, WebM • Max 500MB</p>
+                    </div>
+                    <input type="file" id="fileInput" accept="video/*">
+                    <div class="info-grid hidden" id="videoInfo">
+                        <div class="info-item">
+                            <div class="label">File</div>
+                            <div class="value" id="infoFile">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Size</div>
+                            <div class="value" id="infoSize">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Duration</div>
+                            <div class="value" id="infoDuration">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Resolution</div>
+                            <div class="value" id="infoRes">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Card -->
+            <div class="card hidden" id="algoCard">
+            <div class="card-header">
+                <i data-lucide="sparkles"></i>
+                <span>Compression Algorithm</span>
+            </div>
+            <div class="card-body">
+                <div class="algo-grid">
+                    <label class="algo-card selected" data-algo="neural_preserve">
+                        <input type="radio" name="algo" value="neural_preserve" checked>
+                        <div class="algo-header">
+                            <div class="algo-icon"><i data-lucide="brain"></i></div>
+                            <span class="algo-name">Neural</span>
+                            <span class="algo-tag">BEST</span>
+                        </div>
+                        <p class="algo-desc">Psycho-visual optimization. Best for faces & detail.</p>
+                        <div class="algo-stats">
+                            <div class="stat-row">Quality<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div></div></div>
+                            <div class="stat-row">Speed<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div><div class="stat-dot"></div><div class="stat-dot"></div></div></div>
+                        </div>
+                    </label>
+                    <label class="algo-card" data-algo="bitrate_sculptor">
+                        <input type="radio" name="algo" value="bitrate_sculptor">
+                        <div class="algo-header">
+                            <div class="algo-icon"><i data-lucide="sliders-horizontal"></i></div>
+                            <span class="algo-name">Sculptor</span>
+                            <span class="algo-tag balanced">BALANCED</span>
+                        </div>
+                        <p class="algo-desc">2-pass encoding. Great for vlogs & mixed content.</p>
+                        <div class="algo-stats">
+                            <div class="stat-row">Quality<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div></div></div>
+                            <div class="stat-row">Speed<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div><div class="stat-dot"></div></div></div>
+                        </div>
+                    </label>
+                    <label class="algo-card" data-algo="quantum_compress">
+                        <input type="radio" name="algo" value="quantum_compress">
+                        <div class="algo-header">
+                            <div class="algo-icon"><i data-lucide="zap"></i></div>
+                            <span class="algo-name">Quantum</span>
+                            <span class="algo-tag fast">FAST</span>
+                        </div>
+                        <p class="algo-desc">Maximum compression. Quick sharing & low bandwidth.</p>
+                        <div class="algo-stats">
+                            <div class="stat-row">Quality<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div><div class="stat-dot"></div></div></div>
+                            <div class="stat-row">Speed<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div></div></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Split Card -->
+        <div class="card hidden" id="splitCard">
+            <div class="card-header">
+                <i data-lucide="scissors"></i>
+                <span>Split Duration</span>
+            </div>
+            <div class="card-body">
+                <div class="warning-bar" id="splitWarning">
+                    <i data-lucide="alert-triangle"></i>
+                    <span>Video exceeds 30s. Consider splitting for WhatsApp Status.</span>
+                </div>
+                <div class="split-grid">
+                    <button class="split-btn selected" data-duration="0">
+                        <span class="title">No Split</span>
+                        <span class="hint">Keep as single file</span>
+                    </button>
+                    <button class="split-btn" data-duration="30">
+                        <span class="title">30 Seconds</span>
+                        <span class="hint">WhatsApp Status</span>
+                    </button>
+                    <button class="split-btn" data-duration="60">
+                        <span class="title">60 Seconds</span>
+                        <span class="hint">Extended clips</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Card -->
+        <div class="card hidden" id="actionCard">
+            <div class="card-body">
+                <button class="btn-primary" id="compressBtn" disabled>
+                    <i data-lucide="rocket"></i>
+                    <span>Compress Video</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="card progress-card" id="progressCard">
+            <div class="card-header">
+                <i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i>
+                <span>Processing</span>
+            </div>
+            <div class="card-body">
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-text" id="progressText">Analyzing video...</p>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="card results-card" id="resultsCard">
+            <div class="card-header">
+                <i data-lucide="check-circle"></i>
+                <span>Compression Complete</span>
+            </div>
+            <div class="card-body">
+                <div class="result-banner">
+                    <h3><i data-lucide="check"></i> Ready for WhatsApp</h3>
+                    <p>Your video has been optimized</p>
+                    <div class="result-stats">
+                        <div class="result-stat">
+                            <div class="label">Original</div>
+                            <div class="value" id="resOriginal">-</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="label">Compressed</div>
+                            <div class="value" id="resCompressed">-</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="label">Saved</div>
+                            <div class="value" id="resSaved">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="download-header"><i data-lucide="download"></i> Downloads</div>
+                <div id="downloadList"></div>
+                <button class="btn-secondary" onclick="startNew()">
+                    <i data-lucide="plus"></i> Compress Another
+                </button>
+            </div>
+        </div>
+        </div><!-- End Video Mode -->
+
+        <!-- PHOTO MODE -->
+        <div id="photoMode" class="hidden">
+            <!-- Photo Upload Card -->
+            <div class="card" id="photoUploadCard">
+                <div class="card-header">
+                    <i data-lucide="upload"></i>
+                    <span>Upload Photo</span>
+                </div>
+                <div class="card-body">
+                    <div class="upload-zone" id="photoUploadZone">
+                        <i data-lucide="image"></i>
+                        <h3>Drop image here or click to browse</h3>
+                        <p>JPG, PNG, GIF, WebP • Max 50MB</p>
+                    </div>
+                    <input type="file" id="photoFileInput" accept="image/*">
+                    <div class="info-grid hidden" id="photoInfo">
+                        <div class="info-item">
+                            <div class="label">File</div>
+                            <div class="value" id="photoInfoFile">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Size</div>
+                            <div class="value" id="photoInfoSize">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Format</div>
+                            <div class="value" id="photoInfoFormat">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Resolution</div>
+                            <div class="value" id="photoInfoRes">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Algorithm Card -->
+            <div class="card hidden" id="photoAlgoCard">
+                <div class="card-header">
+                    <i data-lucide="sparkles"></i>
+                    <span>Compression Algorithm</span>
+                </div>
+                <div class="card-body">
+                    <div class="algo-grid">
+                        <label class="algo-card selected" data-algo="clarity_max">
+                            <input type="radio" name="photo_algo" value="clarity_max" checked>
+                            <div class="algo-header">
+                                <div class="algo-icon"><i data-lucide="eye"></i></div>
+                                <span class="algo-name">Clarity</span>
+                                <span class="algo-tag">BEST</span>
+                            </div>
+                            <p class="algo-desc">Maximum quality. Best for portraits & detailed images.</p>
+                            <div class="algo-stats">
+                                <div class="stat-row">Quality<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div></div></div>
+                                <div class="stat-row">Size<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div><div class="stat-dot"></div></div></div>
+                            </div>
+                        </label>
+                        <label class="algo-card" data-algo="balanced_pro">
+                            <input type="radio" name="photo_algo" value="balanced_pro">
+                            <div class="algo-header">
+                                <div class="algo-icon"><i data-lucide="scale"></i></div>
+                                <span class="algo-name">Balanced</span>
+                                <span class="algo-tag balanced">SMART</span>
+                            </div>
+                            <p class="algo-desc">Adaptive quality. Great for general photos.</p>
+                            <div class="algo-stats">
+                                <div class="stat-row">Quality<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div></div></div>
+                                <div class="stat-row">Size<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div></div></div>
+                            </div>
+                        </label>
+                        <label class="algo-card" data-algo="quick_share">
+                            <input type="radio" name="photo_algo" value="quick_share">
+                            <div class="algo-header">
+                                <div class="algo-icon"><i data-lucide="zap"></i></div>
+                                <span class="algo-name">Quick</span>
+                                <span class="algo-tag fast">FAST</span>
+                            </div>
+                            <p class="algo-desc">Maximum compression. Fast sharing & low bandwidth.</p>
+                            <div class="algo-stats">
+                                <div class="stat-row">Quality<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot"></div><div class="stat-dot"></div></div></div>
+                                <div class="stat-row">Size<div class="stat-bar"><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div><div class="stat-dot filled"></div></div></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Format Card -->
+            <div class="card hidden" id="photoFormatCard">
+                <div class="card-header">
+                    <i data-lucide="file-image"></i>
+                    <span>Output Format</span>
+                </div>
+                <div class="card-body">
+                    <div class="split-grid">
+                        <button class="split-btn selected" data-format="jpg">
+                            <span class="title">JPG</span>
+                            <span class="hint">Best compatibility</span>
+                        </button>
+                        <button class="split-btn" data-format="webp">
+                            <span class="title">WebP</span>
+                            <span class="hint">Smaller size</span>
+                        </button>
+                        <button class="split-btn" data-format="png">
+                            <span class="title">PNG</span>
+                            <span class="hint">Lossless</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Compress Button -->
+            <button class="btn-primary hidden" id="photoCompressBtn" onclick="compressPhoto()">
+                <i data-lucide="image"></i>
+                Compress Photo
+            </button>
+
+            <!-- Photo Progress -->
+            <div class="card progress-card" id="photoProgressCard">
+                <div class="card-body">
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar" id="photoProgressBar"></div>
+                    </div>
+                    <p class="progress-text" id="photoProgressText">Optimizing image...</p>
+                </div>
+            </div>
+
+            <!-- Photo Results Card -->
+            <div class="card results-card" id="photoResultsCard">
+                <div class="card-header">
+                    <i data-lucide="check-circle"></i>
+                    <span>Optimization Complete</span>
+                </div>
+                <div class="card-body">
+                    <div class="result-banner">
+                        <h3><i data-lucide="check"></i> Ready for WhatsApp</h3>
+                        <p>Your photo has been optimized</p>
+                        <div class="result-stats">
+                            <div class="result-stat">
+                                <div class="label">Original</div>
+                                <div class="value" id="photoResOriginal">-</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="label">Compressed</div>
+                                <div class="value" id="photoResCompressed">-</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="label">Saved</div>
+                                <div class="value" id="photoResSaved">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="download-header"><i data-lucide="download"></i> Download</div>
+                    <div id="photoDownloadList"></div>
+                    <button class="btn-secondary" onclick="startNewPhoto()">
+                        <i data-lucide="plus"></i> Compress Another
+                    </button>
+                </div>
+            </div>
+        </div><!-- End Photo Mode -->
+
+        <!-- History Card -->
+        <div class="card history-card" id="historyCard">
+            <div class="card-header">
+                <i data-lucide="history"></i>
+                <span>Recent Files</span>
+            </div>
+            <div class="card-body" id="historyList">
+                <!-- History items -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Files auto-delete after 24 hours. Session persists until cleared.</p>
+            <div class="footer-actions">
+                <button class="btn-ghost primary" onclick="loadHistory()">
+                    <i data-lucide="refresh-cw"></i> Refresh
+                </button>
+                <button class="btn-ghost" onclick="clearSession()">
+                    <i data-lucide="trash-2"></i> Clear All
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State
+        let state = {
+            fileId: null,
+            algorithm: 'neural_preserve',
+            splitDuration: 0,
+            duration: 0
+        };
+
+        // Elements
+        const $ = id => document.getElementById(id);
+        const uploadZone = $('uploadZone');
+        const fileInput = $('fileInput');
+
+        // Initialize - Load session state
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadSessionState();
+            loadHistory();
+        });
+
+        // Load session state from server
+        async function loadSessionState() {
+            try {
+                const res = await fetch('/session/files');
+                const data = await res.json();
+                $('sessionBadge').textContent = 'Session: ' + data.session_id.substring(0, 8);
+                
+                // Restore last state if exists
+                const saved = localStorage.getItem('vc_state');
+                if (saved) {
+                    const restored = JSON.parse(saved);
+                    if (restored.fileId && data.uploads.find(u => u.id === restored.fileId)) {
+                        state = restored;
+                        restoreUI(data.uploads.find(u => u.id === restored.fileId));
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load session:', e);
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem('vc_state', JSON.stringify(state));
+        }
+
+        // Restore UI from state
+        function restoreUI(fileData) {
+            uploadZone.classList.add('uploaded');
+            uploadZone.innerHTML = `
+                <i data-lucide="check-circle"></i>
+                <h3>${fileData.original_name}</h3>
+                <p>Click to change</p>
+            `;
+            lucide.createIcons();
+            $('infoFile').textContent = fileData.original_name.length > 12 ? fileData.original_name.substring(0,12)+'...' : fileData.original_name;
+            $('infoSize').textContent = formatSize(fileData.size);
+            $('infoDuration').textContent = formatDuration(fileData.duration);
+            $('infoRes').textContent = fileData.width + 'x' + fileData.height;
+            $('videoInfo').classList.remove('hidden');
+            $('algoCard').classList.remove('hidden');
+            $('splitCard').classList.remove('hidden');
+            $('actionCard').classList.remove('hidden');
+            $('compressBtn').disabled = false;
+            
+            if (fileData.duration > 30) {
+                $('splitWarning').classList.add('show');
+            }
+            
+            // Restore selections
+            document.querySelectorAll('.algo-card').forEach(c => {
+                c.classList.toggle('selected', c.dataset.algo === state.algorithm);
+            });
+            document.querySelectorAll('.split-btn').forEach(b => {
+                b.classList.toggle('selected', parseInt(b.dataset.duration) === state.splitDuration);
+            });
+        }
+
+        // Load history
+        async function loadHistory() {
+            try {
+                const res = await fetch('/session/files');
+                const data = await res.json();
+                
+                const list = $('historyList');
+                if (data.uploads && data.uploads.length > 0) {
+                    $('historyCard').classList.add('show');
+                    // Sort by timestamp descending (most recent first)
+                    const sortedUploads = [...data.uploads].sort((a, b) => 
+                        new Date(b.timestamp || 0) - new Date(a.timestamp || 0)
+                    );
+                    list.innerHTML = sortedUploads.map(file => {
+                        const outputs = data.outputs[file.id] || [];
+                        const hasOutputs = outputs.length > 0;
+                        const hasMultipleParts = outputs.length > 1;
+                        const isPhoto = file.type === 'photo';
+                        
+                        // Icon based on type
+                        const icon = isPhoto ? 'image' : 'file-video';
+                        
+                        // Meta info based on type
+                        const metaInfo = isPhoto 
+                            ? `${formatSize(file.size)} • ${file.width}x${file.height}`
+                            : `${formatSize(file.size)} • ${formatDuration(file.duration || 0)}`;
+                        
+                        // Generate parts download buttons
+                        let partsHtml = '';
+                        if (hasMultipleParts) {
+                            partsHtml = `
+                                <div class="history-parts">
+                                    <span class="history-parts-label">${outputs.length} parts available:</span>
+                                    ${outputs.map(part => `
+                                        <a class="part-btn" href="/download/${file.id}/${part.part}" title="Download Part ${part.part} (${part.size})">
+                                            <i data-lucide="download"></i>
+                                            Part ${part.part}
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
+                        
+                        return `
+                            <div class="history-item">
+                                <div class="history-item-header">
+                                    <div class="download-info">
+                                        <div class="download-icon"><i data-lucide="${icon}"></i></div>
+                                        <div class="download-details">
+                                            <h4>${file.original_name}</h4>
+                                            <p class="history-meta">${metaInfo}${hasOutputs ? ` • ${outputs.length} part${outputs.length > 1 ? 's' : ''}` : ''}</p>
+                                        </div>
+                                    </div>
+                                    <div class="history-actions">
+                                        ${hasOutputs && !hasMultipleParts ? `<a class="btn-icon" href="/download/${file.id}/1" title="Download"><i data-lucide="download"></i></a>` : ''}
+                                        <button class="btn-icon danger" onclick="deleteFile('${file.id}')" title="Delete"><i data-lucide="trash-2"></i></button>
+                                    </div>
+                                </div>
+                                ${partsHtml}
+                            </div>
+                        `;
+                    }).join('');
+                    lucide.createIcons();
+                } else {
+                    $('historyCard').classList.remove('show');
+                }
+            } catch (e) {
+                console.error('Failed to load history:', e);
+            }
+        }
+
+        // Upload handlers
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        // Handle file upload
+        async function handleFile(file) {
+            if (!file.name.match(/\.(mp4|mov|avi|mkv|webm|m4v|3gp)$/i)) {
+                alert('Invalid file type');
+                return;
+            }
+
+            uploadZone.innerHTML = `<div class="spinner"></div><h3>Uploading...</h3><p>${file.name}</p>`;
+
+            const formData = new FormData();
+            formData.append('video', file);
+
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.success) {
+                    state.fileId = data.file_id;
+                    state.duration = data.duration;
+                    saveState();
+
+                    uploadZone.classList.add('uploaded');
+                    uploadZone.innerHTML = `<i data-lucide="check-circle"></i><h3>${data.filename}</h3><p>Click to change</p>`;
+                    lucide.createIcons();
+                    
+                    $('infoFile').textContent = data.filename.length > 12 ? data.filename.substring(0,12)+'...' : data.filename;
+                    $('infoSize').textContent = data.size;
+                    $('infoDuration').textContent = formatDuration(data.duration);
+                    $('infoRes').textContent = data.resolution;
+                    
+                    $('videoInfo').classList.remove('hidden');
+                    $('algoCard').classList.remove('hidden');
+                    $('splitCard').classList.remove('hidden');
+                    $('actionCard').classList.remove('hidden');
+                    $('compressBtn').disabled = false;
+                    
+                    if (data.needs_split) $('splitWarning').classList.add('show');
+                    
+                    loadHistory();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (e) {
+                alert('Upload failed: ' + e.message);
+                resetUpload();
+            }
+        }
+
+        // Algorithm selection
+        document.querySelectorAll('.algo-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.algo-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                state.algorithm = card.dataset.algo;
+                saveState();
+            });
+        });
+
+        // Split selection
+        document.querySelectorAll('.split-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.split-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                state.splitDuration = parseInt(btn.dataset.duration);
+                saveState();
+            });
+        });
+
+        // Compress
+        $('compressBtn').addEventListener('click', async () => {
+            if (!state.fileId) return;
+
+            // Show progress
+            $('uploadCard').classList.add('hidden');
+            $('algoCard').classList.add('hidden');
+            $('splitCard').classList.add('hidden');
+            $('actionCard').classList.add('hidden');
+            $('historyCard').classList.remove('show');
+            $('progressCard').classList.add('show');
+
+            const bar = $('progressBar');
+            const text = $('progressText');
+            let progress = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                bar.style.width = progress + '%';
+                text.textContent = progress < 30 ? 'Analyzing...' : progress < 60 ? 'Compressing...' : 'Finalizing...';
+            }, 400);
+
+            try {
+                const res = await fetch('/compress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file_id: state.fileId,
+                        algorithm: state.algorithm,
+                        split_duration: state.splitDuration
+                    })
+                });
+
+                clearInterval(interval);
+                bar.style.width = '100%';
+
+                const data = await res.json();
+                if (data.success) {
+                    setTimeout(() => showResults(data), 300);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (e) {
+                clearInterval(interval);
+                alert('Compression failed: ' + e.message);
+                resetAll();
+            }
+        });
+
+        // Show results
+        function showResults(data) {
+            $('progressCard').classList.remove('show');
+            $('resultsCard').classList.add('show');
+
+            if (data.results[0]?.original_size) {
+                $('resOriginal').textContent = data.results[0].original_size;
+                $('resCompressed').textContent = data.results[0].compressed_size;
+                $('resSaved').textContent = data.results[0].compression_ratio + '%';
+            }
+
+            const list = $('downloadList');
+            list.innerHTML = data.outputs.map(o => `
+                <div class="download-item">
+                    <div class="download-info">
+                        <div class="download-icon"><i data-lucide="file-video"></i></div>
+                        <div class="download-details">
+                            <h4>${o.name}</h4>
+                            <p>${o.size}${data.total_parts > 1 ? ' • Part ' + o.part : ''}</p>
+                        </div>
+                    </div>
+                    <a href="/download/${state.fileId}/${o.part}" class="btn-download">
+                        <i data-lucide="download"></i> Download
+                    </a>
+                </div>
+            `).join('');
+            lucide.createIcons();
+
+            loadHistory();
+        }
+
+        // Start new
+        function startNew() {
+            state = { fileId: null, algorithm: 'neural_preserve', splitDuration: 0, duration: 0 };
+            localStorage.removeItem('vc_state');
+            resetAll();
+        }
+
+        // Reset
+        function resetAll() {
+            $('resultsCard').classList.remove('show');
+            $('progressCard').classList.remove('show');
+            $('uploadCard').classList.remove('hidden');
+            $('algoCard').classList.add('hidden');
+            $('splitCard').classList.add('hidden');
+            $('actionCard').classList.add('hidden');
+            $('videoInfo').classList.add('hidden');
+            $('splitWarning').classList.remove('show');
+            $('compressBtn').disabled = true;
+            $('progressBar').style.width = '0%';
+            
+            resetUpload();
+            
+            document.querySelectorAll('.algo-card').forEach(c => c.classList.toggle('selected', c.dataset.algo === 'neural_preserve'));
+            document.querySelectorAll('.split-btn').forEach(b => b.classList.toggle('selected', b.dataset.duration === '0'));
+            
+            loadHistory();
+        }
+
+        function resetUpload() {
+            uploadZone.classList.remove('uploaded');
+            uploadZone.innerHTML = `<i data-lucide="film"></i><h3>Drop video here or click to browse</h3><p>MP4, MOV, AVI, MKV, WebM • Max 500MB</p>`;
+            lucide.createIcons();
+        }
+
+        // Delete file
+        async function deleteFile(fileId) {
+            if (!confirm('Delete this file?')) return;
+            await fetch('/delete/' + fileId, { method: 'DELETE' });
+            if (state.fileId === fileId) startNew();
+            else loadHistory();
+        }
+
+        // Clear session
+        async function clearSession() {
+            if (!confirm('Delete all files and clear session?')) return;
+            await fetch('/session/clear', { method: 'POST' });
+            localStorage.removeItem('vc_state');
+            startNew();
+        }
+
+        // Helpers
+        function formatDuration(s) {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return m + ':' + sec.toString().padStart(2, '0');
+        }
+        function formatSize(b) {
+            const u = ['B', 'KB', 'MB', 'GB'];
+            let i = 0;
+            while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+            return b.toFixed(1) + ' ' + u[i];
+        }
+
+        // =====================================================
+        // PHOTO MODE
+        // =====================================================
+        
+        let photoState = {
+            fileId: null,
+            algorithm: 'clarity_max',
+            format: 'jpg'
+        };
+        
+        const photoUploadZone = $('photoUploadZone');
+        const photoFileInput = $('photoFileInput');
+        
+        // Mode switching
+        function setMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.mode === mode);
+            });
+            
+            if (mode === 'video') {
+                $('videoMode').classList.remove('hidden');
+                $('photoMode').classList.add('hidden');
+            } else {
+                $('videoMode').classList.add('hidden');
+                $('photoMode').classList.remove('hidden');
+            }
+            
+            lucide.createIcons();
+        }
+        
+        // Photo upload handlers
+        photoUploadZone.addEventListener('click', () => photoFileInput.click());
+        photoUploadZone.addEventListener('dragover', e => { e.preventDefault(); photoUploadZone.classList.add('dragover'); });
+        photoUploadZone.addEventListener('dragleave', () => photoUploadZone.classList.remove('dragover'));
+        photoUploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            photoUploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handlePhotoFile(e.dataTransfer.files[0]);
+        });
+        photoFileInput.addEventListener('change', e => {
+            if (e.target.files.length) handlePhotoFile(e.target.files[0]);
+        });
+        
+        // Handle photo upload
+        async function handlePhotoFile(file) {
+            if (!file.name.match(/\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i)) {
+                alert('Invalid file type. Use JPG, PNG, GIF, or WebP.');
+                return;
+            }
+            
+            photoUploadZone.innerHTML = `<div class="spinner"></div><h3>Uploading...</h3><p>${file.name}</p>`;
+            
+            const formData = new FormData();
+            formData.append('photo', file);
+            
+            try {
+                const res = await fetch('/upload/photo', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    photoState.fileId = data.file_id;
+                    
+                    photoUploadZone.classList.add('uploaded');
+                    photoUploadZone.innerHTML = `<i data-lucide="check-circle"></i><h3>${data.filename}</h3><p>Click to change</p>`;
+                    lucide.createIcons();
+                    
+                    $('photoInfoFile').textContent = data.filename.length > 12 ? data.filename.substring(0,12)+'...' : data.filename;
+                    $('photoInfoSize').textContent = data.size;
+                    $('photoInfoFormat').textContent = data.format;
+                    $('photoInfoRes').textContent = data.resolution;
+                    
+                    $('photoInfo').classList.remove('hidden');
+                    $('photoAlgoCard').classList.remove('hidden');
+                    $('photoFormatCard').classList.remove('hidden');
+                    $('photoCompressBtn').classList.remove('hidden');
+                    
+                    loadHistory();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (e) {
+                alert('Upload failed: ' + e.message);
+                resetPhotoUpload();
+            }
+        }
+        
+        // Photo algorithm selection
+        document.querySelectorAll('#photoAlgoCard .algo-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#photoAlgoCard .algo-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                photoState.algorithm = card.dataset.algo;
+            });
+        });
+        
+        // Photo format selection
+        document.querySelectorAll('#photoFormatCard .split-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#photoFormatCard .split-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                photoState.format = btn.dataset.format;
+            });
+        });
+        
+        // Compress photo
+        async function compressPhoto() {
+            if (!photoState.fileId) return;
+            
+            // Show progress
+            $('photoUploadCard').classList.add('hidden');
+            $('photoAlgoCard').classList.add('hidden');
+            $('photoFormatCard').classList.add('hidden');
+            $('photoCompressBtn').classList.add('hidden');
+            $('photoProgressCard').classList.add('show');
+            
+            const bar = $('photoProgressBar');
+            const text = $('photoProgressText');
+            let progress = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                bar.style.width = progress + '%';
+                text.textContent = progress < 30 ? 'Analyzing...' : progress < 60 ? 'Optimizing...' : 'Finalizing...';
+            }, 200);
+            
+            try {
+                const res = await fetch('/compress/photo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file_id: photoState.fileId,
+                        algorithm: photoState.algorithm,
+                        format: photoState.format
+                    })
+                });
+                
+                clearInterval(interval);
+                bar.style.width = '100%';
+                
+                const data = await res.json();
+                if (data.success) {
+                    setTimeout(() => showPhotoResults(data), 300);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (e) {
+                clearInterval(interval);
+                $('photoProgressCard').classList.remove('show');
+                alert('Compression failed: ' + e.message);
+                resetPhotoAll();
+            }
+        }
+        
+        // Show photo results
+        function showPhotoResults(data) {
+            $('photoProgressCard').classList.remove('show');
+            $('photoResultsCard').classList.add('show');
+            
+            $('photoResOriginal').textContent = data.original_size;
+            $('photoResCompressed').textContent = data.compressed_size;
+            $('photoResSaved').textContent = data.compression_ratio + '%';
+            
+            const list = $('photoDownloadList');
+            list.innerHTML = data.outputs.map(o => `
+                <div class="download-item">
+                    <div class="download-info">
+                        <div class="download-icon"><i data-lucide="image"></i></div>
+                        <div class="download-details">
+                            <h4>${o.name}</h4>
+                            <p>${o.size} • ${o.format}</p>
+                        </div>
+                    </div>
+                    <a href="/download/${photoState.fileId}/${o.part}" class="btn-download">
+                        <i data-lucide="download"></i> Download
+                    </a>
+                </div>
+            `).join('');
+            lucide.createIcons();
+            
+            loadHistory();
+        }
+        
+        // Start new photo
+        function startNewPhoto() {
+            photoState = { fileId: null, algorithm: 'clarity_max', format: 'jpg' };
+            resetPhotoAll();
+        }
+        
+        // Reset photo UI
+        function resetPhotoAll() {
+            $('photoResultsCard').classList.remove('show');
+            $('photoProgressCard').classList.remove('show');
+            $('photoUploadCard').classList.remove('hidden');
+            $('photoAlgoCard').classList.add('hidden');
+            $('photoFormatCard').classList.add('hidden');
+            $('photoCompressBtn').classList.add('hidden');
+            $('photoInfo').classList.add('hidden');
+            $('photoProgressBar').style.width = '0%';
+            
+            resetPhotoUpload();
+            
+            document.querySelectorAll('#photoAlgoCard .algo-card').forEach(c => c.classList.toggle('selected', c.dataset.algo === 'clarity_max'));
+            document.querySelectorAll('#photoFormatCard .split-btn').forEach(b => b.classList.toggle('selected', b.dataset.format === 'jpg'));
+            
+            loadHistory();
+        }
+        
+        function resetPhotoUpload() {
+            photoUploadZone.classList.remove('uploaded');
+            photoUploadZone.innerHTML = `<i data-lucide="image"></i><h3>Drop image here or click to browse</h3><p>JPG, PNG, GIF, WebP • Max 50MB</p>`;
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
