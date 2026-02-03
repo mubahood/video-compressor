@@ -74,9 +74,21 @@ Upload all project files to your cPanel account:
 
 ### Step 3: Install Dependencies
 
+**⚠️ IMPORTANT: Use the cPanel-specific requirements file to avoid installation errors!**
+
 #### Via cPanel Python Selector:
 1. In the Python App settings, scroll to **Configuration files**
-2. Click **Run Pip Install** next to `requirements.txt`
+2. Change the configuration file from `requirements.txt` to `requirements-cpanel.txt`
+3. Click **Run Pip Install**
+
+#### Via SSH:
+```bash
+cd ~/videopress
+source venv/bin/activate
+pip install -r requirements-cpanel.txt
+```
+
+**Note:** The `requirements-cpanel.txt` excludes opencv and numpy which often fail on shared hosting. The app will work perfectly without them - only the AI-enhanced compression feature is disabled.
 
 #### Via SSH:
 ```bash

@@ -1,0 +1,12 @@
+# Minimal requirements for cPanel shared hosting
+# Use this file if the main requirements.txt fails to install
+# Run: pip install -r requirements-cpanel.txt
+
+flask>=2.3.0
+ffmpeg-python>=0.2.0
+python-dotenv>=1.0.0
+werkzeug>=2.3.0
+Pillow>=10.0.0
+
+# Note: ML features (opencv, numpy) are disabled
+# The app will work without them using standard compression

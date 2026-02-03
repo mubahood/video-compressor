@@ -9,10 +9,21 @@ Features:
 - Scene complexity analysis
 - Motion estimation
 - Content classification (talking head, action, nature, etc.)
+
+Note: This module requires opencv-python-headless and numpy.
+If not available, a fallback analyzer is used.
 """
 
-import cv2
-import numpy as np
+# Try to import ML dependencies - they're optional
+try:
+    import cv2
+    import numpy as np
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    cv2 = None
+    np = None
+
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 from enum import Enum
@@ -61,16 +72,24 @@ class MLVideoAnalyzer:
     """
     ML-based video analyzer for content-aware compression.
     Uses OpenCV's DNN face detector and various CV algorithms.
+    
+    Falls back to basic analysis if OpenCV is not available.
     """
     
     def __init__(self):
         """Initialize the analyzer with face detection model"""
         self.face_cascade = None
         self.face_net = None
-        self._init_face_detector()
+        self.ml_available = ML_AVAILABLE
+        
+        if self.ml_available:
+            self._init_face_detector()
     
     def _init_face_detector(self):
         """Initialize face detection - try DNN first, fall back to Haar cascade"""
+        if not self.ml_available:
+            return
+            
         # Try to use OpenCV's DNN face detector (more accurate)
         try:
             # Check for pre-trained model files
@@ -94,14 +113,14 @@ class MLVideoAnalyzer:
         except Exception as e:
             print(f"Warning: Face detection unavailable: {e}")
     
-    def detect_faces(self, frame: np.ndarray) -> List[Tuple[int, int, int, int]]:
+    def detect_faces(self, frame) -> List[Tuple[int, int, int, int]]:
         """
         Detect faces in a frame.
         
         Returns:
             List of (x, y, w, h) tuples for each detected face
         """
-        if frame is None:
+        if not self.ml_available or frame is None:
             return []
         
         faces = []
@@ -140,12 +159,12 @@ class MLVideoAnalyzer:
         
         return faces
     
-    def analyze_frame(self, frame: np.ndarray) -> FrameAnalysis:
+    def analyze_frame(self, frame) -> FrameAnalysis:
         """
         Analyze a single frame for various quality metrics.
         """
-        if frame is None:
-            return FrameAnalysis(0, 0, 0, 0, 0, 0, 0)
+        if not self.ml_available or frame is None:
+            return FrameAnalysis(0, 0, 0, 0.5, 0.5, 0.5, 0.5)
         
         h, w = frame.shape[:2]
         frame_area = h * w
@@ -192,11 +211,11 @@ class MLVideoAnalyzer:
             blur_score=blur_score
         )
     
-    def calculate_motion(self, frame1: np.ndarray, frame2: np.ndarray) -> float:
+    def calculate_motion(self, frame1, frame2) -> float:
         """
         Calculate motion between two frames using optical flow.
         """
-        if frame1 is None or frame2 is None:
+        if not self.ml_available or frame1 is None or frame2 is None:
             return 0.0
         
         try:
@@ -233,6 +252,10 @@ class MLVideoAnalyzer:
         Returns:
             VideoAnalysis with recommendations
         """
+        # If ML not available, return default analysis
+        if not self.ml_available:
+            return self._default_analysis()
+        
         cap = cv2.VideoCapture(video_path)
         
         if not cap.isOpened():
