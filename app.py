@@ -53,6 +53,16 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
 # Security: Use environment variable in production, fallback for development
 app.secret_key = os.environ.get('SECRET_KEY', 'videopress-dev-key-change-in-production')
 
+# =============================================================================
+# REGISTER API BLUEPRINT
+# =============================================================================
+try:
+    from api import api_bp
+    app.register_blueprint(api_bp)
+    print("✓ API v1 registered at /api/v1/docs")
+except ImportError as e:
+    print(f"⚠ API module not loaded: {e}")
+
 # Session configuration
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
