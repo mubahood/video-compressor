@@ -78,6 +78,49 @@ class HealthCheck(Resource):
 
 
 # =============================================================================
+# LIMITS INFO
+# =============================================================================
+
+@utility_ns.route('/limits')
+class LimitsInfo(Resource):
+    @utility_ns.doc(
+        description='Get API limits and constraints',
+        responses={
+            200: 'Limits information'
+        }
+    )
+    def get(self):
+        """Get API limits and constraints"""
+        from app import MAX_FILE_SIZE, FILE_EXPIRY_HOURS
+        
+        return {
+            'max_file_size_mb': MAX_FILE_SIZE // (1024 * 1024),
+            'max_file_size_bytes': MAX_FILE_SIZE,
+            'file_expiry_hours': FILE_EXPIRY_HOURS,
+            'session_duration_days': 7,
+            'whatsapp_status': {
+                'max_duration_seconds': 30,
+                'max_file_size_mb': 16,
+                'recommended_resolution': '720p'
+            },
+            'video': {
+                'max_duration': 'unlimited',
+                'max_resolution': '1080p',
+                'split_options': [0, 30, 60, 90]
+            },
+            'photo': {
+                'max_resolution': '1280px',
+                'output_formats': ['jpg', 'png', 'webp']
+            },
+            'gif': {
+                'max_duration_seconds': 6,
+                'max_fps': 15,
+                'max_width': 360
+            }
+        }
+
+
+# =============================================================================
 # ALGORITHMS INFO
 # =============================================================================
 

@@ -63,6 +63,52 @@ def make_api_response(data, session_id, status_code=200):
 
 
 # =============================================================================
+# SESSION ROOT (Alias for /info)
+# =============================================================================
+
+@session_ns.route('/')
+class SessionRoot(Resource):
+    @session_ns.doc(
+        description='Get current session information (alias for /info)',
+        responses={
+            200: 'Session information'
+        }
+    )
+    def get(self):
+        """Get current session information"""
+        config = get_config()
+        session_id = get_session_id()
+        user_data = config['get_user_data'](session_id)
+        
+        # Calculate totals
+        total_upload_size = sum(
+            info.get('size', 0) for info in user_data.get('uploads', {}).values()
+        )
+        
+        video_count = sum(
+            1 for info in user_data.get('uploads', {}).values() 
+            if info.get('type') != 'photo'
+        )
+        photo_count = sum(
+            1 for info in user_data.get('uploads', {}).values() 
+            if info.get('type') == 'photo'
+        )
+        
+        return make_api_response({
+            'success': True,
+            'session_id': session_id,
+            'created': user_data.get('created', ''),
+            'stats': {
+                'total_uploads': len(user_data.get('uploads', {})),
+                'video_count': video_count,
+                'photo_count': photo_count,
+                'upload_size': config['format_size'](total_upload_size),
+                'upload_size_bytes': total_upload_size
+            }
+        }, session_id)
+
+
+# =============================================================================
 # LIST SESSION FILES
 # =============================================================================
 
