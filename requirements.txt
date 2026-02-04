@@ -6,10 +6,9 @@ werkzeug>=2.3.0
 # Image processing
 Pillow>=10.0.0
 
-# ML/AI packages (OPTIONAL - comment out if installation fails on cPanel)
-# These enable AI-enhanced compression but are not required
+# ML/AI packages (optional - enable for AI-enhanced compression)
 # opencv-python-headless>=4.8.0
 # numpy>=1.24.0
 
-# Production WSGI server (optional - for non-Passenger deployments)
+# Production server (optional)
 # gunicorn>=21.0.0
