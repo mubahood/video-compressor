@@ -1,19 +1,29 @@
 """
-VideoPress - WhatsApp Video & Photo Compressor
+MediaPress - WhatsApp Video & Photo Compressor
 ===============================================
 Professional Flask application with persistent session management,
 auto-cleanup, and improved cookie handling.
 Supports both video and photo compression optimized for WhatsApp.
 
-Deployment: Compatible with cPanel Passenger WSGI
+Live: http://compress.ugnews24.info:5001
+Deployment: Windows Service via NSSM
 """
 
 import os
+import sys
 import uuid
 import time
 import json
 import shutil
 import threading
+
+# =============================================================================
+# FFMPEG PATH CONFIGURATION (Windows)
+# =============================================================================
+# Add FFmpeg to PATH if not already available
+FFMPEG_PATH = os.environ.get('FFMPEG_PATH', r'C:\ffmpeg\bin')
+if os.path.exists(FFMPEG_PATH) and FFMPEG_PATH not in os.environ.get('PATH', ''):
+    os.environ['PATH'] = FFMPEG_PATH + os.pathsep + os.environ.get('PATH', '')
 from datetime import datetime, timedelta
 from flask import (
     Flask, render_template, request, jsonify,

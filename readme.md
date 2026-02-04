@@ -2,7 +2,9 @@
 
 A powerful Python web application that compresses videos and photos optimized for WhatsApp Status, ensuring your media stays **crystal clear and blur-free** after upload.
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+**🌐 Live Demo:** [http://compress.ugnews24.info:5001](http://compress.ugnews24.info:5001)
+
+![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)
 ![FFmpeg](https://img.shields.io/badge/FFmpeg-required-red.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
@@ -15,7 +17,7 @@ A powerful Python web application that compresses videos and photos optimized fo
 - **Video Splitting** - Automatically split videos into 30s or 60s segments
 - **Video to GIF** - Convert short videos to optimized GIFs
 
-### Photo Compression (NEW!)
+### Photo Compression
 - **3 Photo Algorithms** - Clarity Max, Balanced Pro, Quick Share
 - **Smart Content Detection** - Detects photos, graphics, screenshots, text
 - **Animated GIF Support** - Optimizes animated GIFs with color reduction
@@ -27,9 +29,9 @@ A powerful Python web application that compresses videos and photos optimized fo
 - **Modern Web Interface** - Clean, responsive design with video/photo mode toggle
 - **WhatsApp Optimized** - Pre-compressed to prevent quality loss on upload
 
-## 🧠 AI-Powered Features (NEW!)
+## 🧠 AI-Powered Features
 
-The Neural Preserve algorithm now includes **machine learning** for smarter compression:
+The Neural Preserve algorithm includes **machine learning** for smarter compression:
 
 - **Face Detection** - Detects faces and prioritizes quality in face regions
 - **Content Classification** - Identifies talking heads, action, nature, screen content
@@ -57,7 +59,7 @@ When you upload a video to WhatsApp Status, WhatsApp aggressively re-compresses 
 
 ## 💡 The Solution
 
-This app **pre-compresses your video** to match WhatsApp's expected specifications, so WhatsApp has minimal re-compression to do, preserving your video quality!
+MediaPress **pre-compresses your video** to match WhatsApp's expected specifications, so WhatsApp has minimal re-compression to do, preserving your video quality!
 
 ---
 
@@ -70,6 +72,12 @@ This app **pre-compresses your video** to match WhatsApp's expected specificatio
 
 #### Install FFmpeg
 
+**Windows:**
+```powershell
+# Download FFmpeg and extract to C:\ffmpeg
+# Add C:\ffmpeg\bin to system PATH
+```
+
 **macOS:**
 ```bash
 brew install ffmpeg
@@ -80,15 +88,12 @@ brew install ffmpeg
 sudo apt update && sudo apt install ffmpeg
 ```
 
-**Windows:**
-Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH.
-
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/video-compressor.git
-cd video-compressor
+git clone https://github.com/yourusername/mediapress.git
+cd mediapress
 
 # Create virtual environment
 python -m venv venv
@@ -101,7 +106,55 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open your browser to **http://localhost:5000**
+Open your browser to **http://localhost:5001**
+
+---
+
+## 🖥️ Windows Server Deployment
+
+MediaPress can run as a Windows Service that persists across reboots.
+
+### Using NSSM (Recommended)
+
+```powershell
+# Install NSSM
+# Download from https://nssm.cc and place nssm.exe in C:\ffmpeg\bin
+
+# Install the service
+nssm.exe install MediaPress "C:\path\to\venv\Scripts\python.exe" "C:\path\to\service_runner.py"
+
+# Configure auto-start
+nssm.exe set MediaPress Start SERVICE_AUTO_START
+nssm.exe set MediaPress AppDirectory "C:\path\to\project"
+
+# Start the service
+nssm.exe start MediaPress
+```
+
+### Service Management
+
+```powershell
+# Check status
+Get-Service MediaPress
+
+# Stop service
+nssm.exe stop MediaPress
+
+# Start service
+nssm.exe start MediaPress
+
+# Restart service
+nssm.exe restart MediaPress
+
+# Remove service
+nssm.exe remove MediaPress confirm
+```
+
+### Service Logs
+
+- `service.log` - Application logs
+- `service_stdout.log` - Standard output
+- `service_stderr.log` - Error logs
 
 ---
 
@@ -118,20 +171,6 @@ Open your browser to **http://localhost:5000**
 | Preset | `veryslow` (maximum quality) |
 | Special | Face detection, content classification, motion analysis |
 
-**AI/ML Features:**
-- **Face Detection** using OpenCV DNN or Haar cascades
-- **Content Classification** (talking head, action, nature, screen, etc.)
-- **Scene Complexity Analysis** via edge detection and histogram variance
-- **Motion Estimation** using optical flow analysis
-- **Adaptive CRF** selected based on content type and complexity
-
-**Technical Features:**
-- Content-adaptive psycho-visual optimization (psy-rd)
-- Lanczos scaling for sharpest downscaling
-- Content-aware denoising (hqdn3d)
-- Adaptive sharpening based on content type
-- Film-grade color handling (BT.709)
-
 ### 2. Bitrate Sculptor 🎨
 **Best for:** Vlogs, mixed content, general videos
 
@@ -141,13 +180,6 @@ Open your browser to **http://localhost:5000**
 | Resolution | 720p |
 | Encoding | Target bitrate calculated from file size budget |
 | Preset | `medium` (balanced speed/quality) |
-| Special | Analyzes scene complexity for optimal bit distribution |
-
-**Technical Features:**
-- 2-pass encoding for precise bitrate control
-- Scene change detection (scenecut=40)
-- Adaptive B-frame decisions (b-adapt=2)
-- Temporal denoising (hqdn3d) for cleaner compression
 
 ### 3. Quantum Compress 🚀
 **Best for:** Quick sharing, low bandwidth, bulk processing
@@ -158,13 +190,6 @@ Open your browser to **http://localhost:5000**
 | Resolution | 640p |
 | CRF | 28 (higher compression) |
 | Preset | `faster` (quick encoding) |
-| Special | Mono audio, reduced framerate |
-
-**Technical Features:**
-- Aggressive noise reduction before encoding
-- No B-frames for simplicity (bframes=0)
-- Baseline profile for maximum compatibility
-- Reduced audio bitrate (96kbps mono)
 
 ### Algorithm Comparison
 
@@ -184,120 +209,37 @@ Open your browser to **http://localhost:5000**
 ## 🖼️ Photo Compression Algorithms
 
 ### 1. Clarity Max 👁️
-**Best for:** Portraits, detailed images, important photos
-
-| Aspect | Details |
-|--------|---------|
-| Strategy | Maximum quality preservation with intelligent enhancement |
-| Max Resolution | 1280px |
-| Quality | 92% JPEG |
-| Chroma | 4:4:4 (best color) |
-
-**Features:**
-- Smart sharpening to counteract WhatsApp compression
-- Color/contrast enhancement optimized for mobile viewing
-- Progressive JPEG for better perceived loading
-- Content-type detection (photo, graphic, screenshot)
+Maximum quality preservation with intelligent enhancement.
+- Max Resolution: 1280px
+- Quality: 92% JPEG
+- Features: Smart sharpening, color enhancement
 
 ### 2. Balanced Pro ⚖️
-**Best for:** General photos, social media sharing
+Balanced quality and file size.
+- Max Resolution: 1080px
+- Quality: 85% JPEG
+- Features: Adaptive quality, format optimization
 
-| Aspect | Details |
-|--------|---------|
-| Strategy | Adaptive quality based on image content |
-| Max Resolution | 1080px |
-| Quality | 82-88% (content-adaptive) |
-| Chroma | 4:2:2 (balanced) |
-
-**Features:**
-- Automatic quality adjustment based on content type
-- Screenshots get higher quality for text clarity
-- Moderate sharpening and enhancement
-- Good balance between size and quality
-
-### 3. Quick Share ⚡
-**Best for:** Bulk sharing, low bandwidth, quick uploads
-
-| Aspect | Details |
-|--------|---------|
-| Strategy | Maximum compression for smallest files |
-| Max Resolution | 720px |
-| Quality | 70% JPEG |
-| Chroma | 4:2:0 (maximum compression) |
-
-**Features:**
-- Aggressive compression for fastest uploads
-- Minimal processing for speed
-- Still maintains acceptable WhatsApp quality
-- Best for sharing many photos quickly
-
-### Photo Algorithm Comparison
-
-```
-┌─────────────────────┬──────────────────┬──────────────────┬──────────────────┐
-│ Feature             │ Clarity Max      │ Balanced Pro     │ Quick Share      │
-├─────────────────────┼──────────────────┼──────────────────┼──────────────────┤
-│ Quality             │ ★★★★★           │ ★★★★☆           │ ★★★☆☆           │
-│ File Size           │ ★★★☆☆           │ ★★★★☆           │ ★★★★★           │
-│ Best For            │ Portraits        │ General          │ Bulk Share       │
-└─────────────────────┴──────────────────┴──────────────────┴──────────────────┘
-```
+### 3. Quick Share 📤
+Fast, lightweight compression.
+- Max Resolution: 800px
+- Quality: 78% JPEG
+- Features: Fast processing, small file sizes
 
 ---
 
-## ✂️ Video Splitting
-
-WhatsApp Status has a **30-second limit**. This app can automatically split longer videos:
-
-| Option | Description |
-|--------|-------------|
-| **No Split** | Keep video as single file |
-| **30 Seconds** | Split into WhatsApp Status-ready segments |
-| **60 Seconds** | For platforms with longer limits |
-
----
-
-## 🔒 Session Management
-
-- **Cookie-based sessions** - Your files persist for 7 days
-- **Session isolation** - Each user has their own storage
-- **Split parts access** - Download individual parts from Recent Files history
-- **Manual cleanup** - Clear your session anytime
-- **Automatic cleanup** - Old sessions purged after 24 hours
-
----
-
-## 📁 Project Structure
-
-```
-video-compressor/
-├── app.py                    # Flask web application
-├── requirements.txt          # Python dependencies
-├── templates/
-│   └── index.html           # Web interface (video & photo modes)
-├── src/
-│   ├── __init__.py
-│   ├── algorithms.py        # 3 video compression algorithms
-│   ├── photo_algorithms.py  # 3 photo compression algorithms (NEW)
-│   ├── ml_analyzer.py       # ML-based video analysis (NEW)
-│   └── splitter.py          # Video splitting module
-├── uploads/                 # Uploaded files (per session)
-├── outputs/                 # Compressed files (per session)
-└── README.md
-```
-
----
-
-## 🛠️ API Endpoints
+## 📡 API Reference
 
 ### Video Endpoints
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/upload` | POST | Upload video file |
-| `/compress` | POST | Process video compression |
-| `/download/<file_id>/<part>` | GET | Download specific segment |
+| `/compress` | POST | Start video compression |
+| `/split` | POST | Split video into parts |
+| `/download/<file_id>` | GET | Download processed file |
+| `/download/<file_id>/part/<n>` | GET | Download split part |
 
-### Photo Endpoints (NEW)
+### Photo Endpoints
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/upload/photo` | POST | Upload photo file |
@@ -308,7 +250,7 @@ video-compressor/
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/` | GET | Main web interface |
-| `/session/files` | GET | List session files (videos & photos) |
+| `/session/files` | GET | List session files |
 | `/session/clear` | POST | Clear all session data |
 | `/delete/<file_id>` | DELETE | Delete specific file |
 | `/health` | GET | Health check |
@@ -320,18 +262,19 @@ video-compressor/
 Environment variables (optional):
 
 ```bash
-# Secret key for sessions (use strong random string in production)
+# Secret key for sessions
 export SECRET_KEY="your-secret-key-here"
 
 # Run in production mode
 export FLASK_ENV=production
+
+# Custom FFmpeg path (Windows)
+export FFMPEG_PATH="C:\ffmpeg\bin"
 ```
 
 ---
 
 ## 📱 WhatsApp Status Specifications
-
-For reference, WhatsApp Status uses these limits:
 
 | Parameter | Limit |
 |-----------|-------|
@@ -359,8 +302,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [FFmpeg](https://ffmpeg.org/) - The backbone of video processing
 - [ffmpeg-python](https://github.com/kkroening/ffmpeg-python) - Python bindings for FFmpeg
-- Inspired by [PureStatus](https://play.google.com/store/apps/details?id=com.damtechdesigns.purepixel)
+- [Waitress](https://docs.pylonsproject.org/projects/waitress/) - Production WSGI server
+- [NSSM](https://nssm.cc/) - Windows Service Manager
 
 ---
+
+**🌐 Live at:** [http://compress.ugnews24.info:5001](http://compress.ugnews24.info:5001)
 
 **Made with ❤️ for blur-free WhatsApp statuses!**

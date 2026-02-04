@@ -56,7 +56,16 @@ session_data.json
 
 # Logs
 *.log
+service.log
+service_stdout.log
+service_stderr.log
 
 # Temporary files
 *.tmp
 *.temp
+
+# SSL Certificates (local)
+certs/
+
+# Windows Service files (local only)
+# Keep these in repo as examples but ignore local versions
