@@ -1,0 +1,21 @@
+[Unit]
+Description=VideoPress - WhatsApp Video Compressor
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/videopress
+Environment="PATH=/var/www/videopress/venv/bin"
+EnvironmentFile=/var/www/videopress/.env
+ExecStart=/var/www/videopress/venv/bin/gunicorn -c gunicorn.conf.py app:app
+Restart=always
+RestartSec=5
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
