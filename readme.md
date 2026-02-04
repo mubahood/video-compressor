@@ -228,32 +228,47 @@ Fast, lightweight compression.
 
 ---
 
-## 📡 API Reference
+## 📡 REST API
 
-### Video Endpoints
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/upload` | POST | Upload video file |
-| `/compress` | POST | Start video compression |
-| `/split` | POST | Split video into parts |
-| `/download/<file_id>` | GET | Download processed file |
-| `/download/<file_id>/part/<n>` | GET | Download split part |
+MediaPress includes a complete REST API with OpenAPI/Swagger documentation.
 
-### Photo Endpoints
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/upload/photo` | POST | Upload photo file |
-| `/compress/photo` | POST | Process photo compression |
-| `/convert/video-to-gif` | POST | Convert video to GIF |
+### API Documentation
 
-### Session Endpoints
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Main web interface |
-| `/session/files` | GET | List session files |
-| `/session/clear` | POST | Clear all session data |
-| `/delete/<file_id>` | DELETE | Delete specific file |
-| `/health` | GET | Health check |
+**Swagger UI:** `http://your-server:5001/api/v1/docs`  
+**API Base URL:** `http://your-server:5001/api/v1`
+
+See [API_DOCS.md](API_DOCS.md) for complete API documentation.
+
+### Quick API Example
+
+```bash
+# Upload a video
+curl -X POST "http://localhost:5001/api/v1/video/upload" \
+  -F "video=@my-video.mp4"
+
+# Compress the video
+curl -X POST "http://localhost:5001/api/v1/video/compress" \
+  -H "Content-Type: application/json" \
+  -d '{"file_id": "YOUR_FILE_ID", "algorithm": "neural_preserve"}'
+
+# Download the result
+curl -O "http://localhost:5001/api/v1/video/download/YOUR_FILE_ID/1"
+```
+
+### API Endpoints Overview
+
+| Category | Endpoint | Method | Description |
+|----------|----------|--------|-------------|
+| Video | `/api/v1/video/upload` | POST | Upload video |
+| Video | `/api/v1/video/compress` | POST | Compress video |
+| Video | `/api/v1/video/download/{id}/{part}` | GET | Download video |
+| Photo | `/api/v1/photo/upload` | POST | Upload photo |
+| Photo | `/api/v1/photo/compress` | POST | Compress photo |
+| Photo | `/api/v1/photo/gif` | POST | Convert to GIF |
+| Session | `/api/v1/session/files` | GET | List files |
+| Session | `/api/v1/session/clear` | POST | Clear session |
+| Utility | `/api/v1/utility/health` | GET | Health check |
+| Utility | `/api/v1/utility/algorithms` | GET | List algorithms |
 
 ---
 
